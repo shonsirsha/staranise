@@ -9,7 +9,7 @@ body {
 }
 
 .app {
-  height: 52px;
+  height: 58px;
   background: var(--primary-color);
   padding: 0 16px;
   display: flex;
