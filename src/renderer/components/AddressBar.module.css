@@ -1,0 +1,20 @@
+.form {
+    display: flex;
+    width: 100%;
+}
+
+.form input {
+    color: #fff;
+    border: 1.5px solid transparent;
+    width: 100%;
+    background-color: var(--secondary-color);
+    padding: 8px 24px;
+    border-radius: 16px;
+}
+
+.form input:focus {
+    outline: none !important;
+    border: 1.5px solid #659DF6;
+    transition: all;
+    box-shadow: 0 0 3px #719ECE;
+}

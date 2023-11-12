@@ -9,11 +9,12 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import { app, BrowserWindow, shell } from 'electron';
+import { app, BrowserView, BrowserWindow, shell } from 'electron';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 
 let mainWindow: BrowserWindow | null = null;
+const NAVIGATOR_HEIGHT = 52;
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -27,6 +28,21 @@ if (isDebug) {
   require('electron-debug')();
 }
 
+const setupBrowserView = () => {
+  const browserView = new BrowserView({
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  });
+
+  browserView.webContents.loadURL('https://www.google.com');
+  browserView.webContents.setUserAgent(
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
+  );
+
+  return browserView;
+};
 const createWindow = async () => {
   const RESOURCES_PATH = app.isPackaged
     ? path.join(process.resourcesPath, 'assets')
@@ -48,7 +64,23 @@ const createWindow = async () => {
     },
   });
 
+  mainWindow.maximize();
   mainWindow.loadURL(resolveHtmlPath('index.html'));
+
+  const browserView = setupBrowserView();
+  const setBrowserViewSize = () => {
+    if (mainWindow && browserView) {
+      const { width: w, height: h } = mainWindow.getContentBounds();
+      browserView.setBounds({
+        x: 0,
+        y: NAVIGATOR_HEIGHT, // Start the BrowserView below the search bar
+        width: w,
+        height: h - NAVIGATOR_HEIGHT, // Reduce the height of the BrowserView by the search bar height
+      });
+    }
+  };
+  setBrowserViewSize();
+  mainWindow.setBrowserView(browserView);
 
   mainWindow.on('ready-to-show', () => {
     if (!mainWindow) {
@@ -63,7 +95,7 @@ const createWindow = async () => {
       mainWindow.webContents.openDevTools({ mode: 'detach' });
     }
   });
-
+  mainWindow.on('resize', setBrowserViewSize);
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
